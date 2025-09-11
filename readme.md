@@ -5,7 +5,7 @@ Files are stored in a configurable local folder (or pluggable cloud storage prov
 
 ---
 
-## ✨ Features
+## Features
 
 - `POST /files` – Upload a file; returns `publicKey` & `privateKey` in JSON.
 - `GET /files/:publicKey` – Download a file by its `publicKey`.
@@ -17,7 +17,7 @@ Files are stored in a configurable local folder (or pluggable cloud storage prov
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 git clone https://github.com/<your-username>/keypair-file-vault.git
