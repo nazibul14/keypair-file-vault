@@ -1,0 +1,28 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+
+# Build output
+dist/
+build/
+tmp/
+temp/
+.cache/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+
+# Optional lock files (pick one if you want to commit)
+# package-lock.json
+
+# Docker
+docker-data/

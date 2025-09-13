@@ -3,23 +3,39 @@
 /**
  * Module dependencies.
  */
+require('dotenv').config();
+let app = require('../app');
+let http = require('http');
+let https = require('https');
+let fs = require('fs');
 
-var app = require('../app');
-var debug = require('debug')('nodeexpressdemo:server');
-var http = require('http');
+let crtpath = process.env.CRT_PATH || '';
+let privatekeypath = process.env.PRIVATE_KEY_PATH || '';
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+let port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTP/HTTPS server.
  */
 
-var server = http.createServer(app);
+let server = null;
+
+if (crtpath != '' && privatekeypath != '' && fs.existsSync(crtpath) && fs.existsSync(privatekeypath)) {
+  try {
+    let options = {cert: fs.readFileSync(crtpath), key: fs.readFileSync(privatekeypath)};
+
+  } catch (e) {
+    console.log('cert read access error')
+  }
+  server = https.createServer(options, app);
+} else {
+  server = http.createServer(app);
+}
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -34,7 +50,7 @@ server.on('listening', onListening);
  */
 
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  let port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -58,7 +74,7 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  let bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 
@@ -82,9 +98,9 @@ function onError(error) {
  */
 
 function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
+  let addr = server.address();
+  let bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  console.log(`Server running at http://localhost:${addr.port}`);
 }
