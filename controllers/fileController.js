@@ -65,7 +65,7 @@ exports.uploadFile = (req, res) => {
         const plainFileName = `${publicKeyId}_${req.file.originalname}`;
         fs.writeFileSync(path.join(uploadDir, plainFileName), fileBuffer);
         meta = {publicKeyId, fileName: plainFileName, originalName: req.file.originalname, deleteToken};
-        fs.writeFileSync(path.join(uploadDir, `${deleteToken}.json`), JSON.stringify(meta));
+        fs.writeFileSync(path.join(uploadDir, `${publicKeyId}.json`), JSON.stringify(meta));
         fs.unlinkSync(req.file.path);
 
         return res.json({
