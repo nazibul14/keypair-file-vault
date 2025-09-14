@@ -1,7 +1,7 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const { uploadDir } = require("../config/storage");
+const { uploadDir, encryptionEnable } = require("../config/storage");
 
 // Ensure folder exists
 if (!fs.existsSync(uploadDir)) {
@@ -26,4 +26,5 @@ const upload = multer({ storage });
 module.exports = {
     singleFileUpload: upload.single("file"), // middleware for one file
     uploadDir, // export the folder path for other code to use
+    encryptionEnable, // export the folder path for other code to use
 };

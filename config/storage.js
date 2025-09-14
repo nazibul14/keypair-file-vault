@@ -4,5 +4,6 @@ require("dotenv").config();
 const uploadDir = process.env.FOLDER || path.join(__dirname, "../uploads");
 
 module.exports = {
-    uploadDir: path.resolve(uploadDir) // always absolute path
+    uploadDir: path.resolve(uploadDir), // always absolute path
+    encryptionEnable: process.env.ENCRYPTION || true,
 };
