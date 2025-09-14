@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { uploadDir } = require("../config/storage");
+const { uploadDir } = require("../services/storageService");
 
 function generateKey() {
     return crypto.randomBytes(16).toString("hex");
@@ -12,6 +12,7 @@ exports.index = (req, res) => {
 };
 
 exports.uploadFile = (req, res) => {
+    // At this point the file has already been saved to uploadDir by storageService
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
     }

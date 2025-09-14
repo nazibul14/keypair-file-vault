@@ -7,6 +7,6 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Keypair File Vault' });
 });
 
-router.use("/", fileRoutes);
+router.use("/files", fileRoutes);
 
 module.exports = router;

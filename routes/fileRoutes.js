@@ -1,32 +1,15 @@
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const fileController = require("../controllers/fileController");
-const { uploadDir } = require("../config/storage");
-
 const router = express.Router();
+const fileController = require("../controllers/fileController");
+const storageService = require("../services/storageService");
 
-// ensure folder exists
-const fs = require("fs");
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// POST /files - use the storageService middleware
+router.post("/", storageService.singleFileUpload, fileController.uploadFile);
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir); // now from config
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "_" + file.originalname);
-    },
-});
+// GET /files/:publicKey
+router.get("/:publicKey", fileController.downloadFile);
 
-const upload = multer({ storage });
-
-// Routes
-router.get("/files", fileController.index);
-router.post("/files", upload.single("file"), fileController.uploadFile);
-router.get("/files/:publicKey", fileController.downloadFile);
-router.delete("/files/:privateKey", fileController.deleteFile);
+// DELETE /files/:privateKey
+router.delete("/:privateKey", fileController.deleteFile);
 
 module.exports = router;
