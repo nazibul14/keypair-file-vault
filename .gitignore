@@ -26,3 +26,7 @@ Thumbs.db
 
 # Docker
 docker-data/
+
+# Upload Folder
+uploads/
+
