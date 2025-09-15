@@ -1,7 +1,12 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const { uploadDir, encryptionEnable, storageDriver } = require("../config/storage");
+const { tmpUploadDir, uploadDir, encryptionEnable, storageDriver } = require("../config/storage");
+
+// Ensure tmp upload folder exists
+if (!fs.existsSync(tmpUploadDir)) {
+    fs.mkdirSync(tmpUploadDir, { recursive: true });
+}
 
 // Ensure folder exists
 if (!fs.existsSync(uploadDir)) {
@@ -11,7 +16,7 @@ if (!fs.existsSync(uploadDir)) {
 // Define storage engine
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadDir);
+        cb(null, tmpUploadDir);
     },
     filename: function (req, file, cb) {
         // temp name; controller may rename later
@@ -25,6 +30,7 @@ const upload = multer({ storage });
 async function saveFile(fileName, buffer) {
     if (storageDriver === "local") {
         const filePath = path.join(uploadDir, fileName);
+        // console.log("Saving file to:", filePath);
         fs.writeFileSync(filePath, buffer);
         return { filePath };
     }
@@ -41,6 +47,7 @@ async function saveFile(fileName, buffer) {
 async function getFileStream(fileName) {
     if (storageDriver === "local") {
         const filePath = path.join(uploadDir, fileName);
+        // console.log("Reading file from:", filePath);
         return fs.createReadStream(filePath);
     }
 /*    else if (storageDriver === "gcs") {
@@ -54,6 +61,7 @@ async function getFileStream(fileName) {
 async function deleteFile(fileName) {
     if (storageDriver === "local") {
         const filePath = path.join(uploadDir, fileName);
+        // console.log("Delete file from:", filePath);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 /*    else if (storageDriver === "gcs") {
@@ -64,14 +72,14 @@ async function deleteFile(fileName) {
     }*/
 }
 
-async function saveMeta(deleteToken, meta) {
-    const metaName = `${deleteToken}.json`;
+async function saveMeta(privateKey, meta) {
+    const metaName = `${privateKey}.json`;
     const buffer = Buffer.from(JSON.stringify(meta));
     return saveFile(metaName, buffer);
 }
 
-async function getMeta(deleteToken) {
-    const metaName = `${deleteToken}.json`;
+async function getMeta(privateKey) {
+    const metaName = `${privateKey}.json`;
     if (storageDriver === "local") {
         const filePath = path.join(uploadDir, metaName);
         if (!fs.existsSync(filePath)) return null;
@@ -86,9 +94,24 @@ async function getMeta(deleteToken) {
     }*/
 }
 
-async function deleteMeta(deleteToken) {
-    const metaName = `${deleteToken}.json`;
+async function deleteMeta(privateKey) {
+    const metaName = `${privateKey}.json`;
     return deleteFile(metaName);
+}
+
+// search through meta files to find matching privateKey
+async function findMeta(privateKey) {
+    let meta;
+    const metaFiles = fs.readdirSync(uploadDir).filter(f => f.endsWith(".json"));
+    for (const mf of metaFiles) {
+        const m = JSON.parse(fs.readFileSync(require("path").join(uploadDir, mf)));
+        if (m.privateKey === privateKey) {
+            meta = m;
+            break;
+        }
+    }
+
+    return meta
 }
 
 // Export an interface
@@ -102,4 +125,5 @@ module.exports = {
     saveMeta,
     getMeta,
     deleteMeta,
+    findMeta,
 };

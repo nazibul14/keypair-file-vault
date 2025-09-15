@@ -1,8 +1,6 @@
 const fs = require("fs");
-const path = require("path");
 const crypto = require("crypto");
 const mime = require("mime-types");
-// const storage = require("../services/storageService");
 const {
     generateKeyPair,
     generateAesKey,
@@ -19,13 +17,14 @@ const {
     saveMeta,
     getMeta,
     deleteMeta,
+    findMeta,
 } = require("../services/storageService");
 
 // POST /files
 exports.uploadFile = async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    const fileBuffer = req.file.buffer || require("fs").readFileSync(req.file.path);
+    const fileBuffer = req.file.buffer || fs.readFileSync(req.file.path);
     const privateKey = crypto.randomBytes(16).toString("hex");
 
     let meta, publicKeyId, fileName;
@@ -51,7 +50,9 @@ exports.uploadFile = async (req, res) => {
 
         await saveFile(fileName, encryptedFileBuffer);
         await saveMeta(publicKeyId, meta);
+
     } else {
+
         publicKeyId = crypto.randomBytes(8).toString("hex");
         fileName = `${publicKeyId}_${req.file.originalname}`;
         meta = { publicKeyId, fileName, originalName: req.file.originalname, privateKey };
@@ -59,6 +60,8 @@ exports.uploadFile = async (req, res) => {
         await saveFile(fileName, fileBuffer);
         await saveMeta(publicKeyId, meta);
     }
+
+    fs.unlinkSync(req.file.path);
 
     return res.json({ publicKey: publicKeyId, privateKey });
 };
@@ -95,19 +98,8 @@ exports.downloadFile = async (req, res) => {
 // DELETE /files/:privateKey
 exports.deleteFile = async (req, res) => {
     const { privateKey } = req.params;
-    // search through meta files to find matching privateKey
-    const fs = require("fs");
-    const uploadDir = require("../services/storageService").uploadDir;
-    const metaFiles = fs.readdirSync(uploadDir).filter(f => f.endsWith(".json"));
 
-    let meta;
-    for (const mf of metaFiles) {
-        const m = JSON.parse(fs.readFileSync(require("path").join(uploadDir, mf)));
-        if (m.privateKey === privateKey) {
-            meta = m;
-            break;
-        }
-    }
+    let meta = await findMeta(privateKey);
 
     if (!meta) return res.status(404).json({ error: "File not found or invalid token" });
 
