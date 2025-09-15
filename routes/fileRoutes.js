@@ -10,6 +10,6 @@ router.post("/", storageService.singleFileUpload, fileController.uploadFile);
 router.get("/:publicKey", fileController.downloadFile);
 
 // DELETE /files/:privateKey
-router.delete("/:deleteToken", fileController.deleteFile);
+router.delete("/:privateKey", fileController.deleteFile);
 
 module.exports = router;
