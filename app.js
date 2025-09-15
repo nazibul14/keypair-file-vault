@@ -12,10 +12,6 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// custom logger middleware
-const logger = require("./middlewares/logger");
-app.use(logger); // <-- use it here
-
 // Middleware
 app.use(morgan('dev'));
 app.use(express.json());
