@@ -12,6 +12,7 @@ build/
 tmp/
 temp/
 .cache/
+package-lock.json
 
 # OS generated files
 .DS_Store
