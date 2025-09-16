@@ -12,7 +12,7 @@ const testFilePath = path.join(__dirname, "../fixtures/testfile.txt");
 describe("Files API Integration", () => {
     let publicKey, privateKey;
 
-    it("should upload a file", async () => {
+    it("should upload a file and get public key private key in json response", async () => {
         // Create a sample file for upload
         fs.writeFileSync(testFilePath, "keypait-file-valut integration test file");
 

@@ -56,13 +56,13 @@ async function saveTrafficRecord(ip, record) {
     if (dbConfig.dbType === "redis") {
         const today = moment().format("YYYY-MM-DD");
         const key = dbConfig.redisTrafficPrefix + today + "::" + ip;
-        console.log('Saving to redis key', key)
+        // console.log('Saving to redis key', key)
         // expire after 2 days
         await redisClient.set(key, JSON.stringify(record), {EX: 60 * 60 * 48});
     } else {
         if (storageDriver === "local") {
             const filePath = getFilePath(ip);
-            console.log('record path', filePath)
+            // console.log('record path', filePath)
             fs.writeFileSync(filePath, JSON.stringify(record));
         }
     }
@@ -71,10 +71,10 @@ async function saveTrafficRecord(ip, record) {
 async function saveMeta(publicKey, privateKey, meta) {
     if (dbConfig.dbType === "redis") {
         const key = dbConfig.redisMetaPrefix + publicKey;
-        console.log('Saving to redis key', key)
+        // console.log('Saving to redis key', key)
         await redisClient.set(key, JSON.stringify(meta));
         const keyMap = dbConfig.privateKeyMapPrefix + privateKey;
-        console.log('Saving to redis key', key)
+        // console.log('Saving to redis key', keyMap)
         await redisClient.set(keyMap, publicKey);
     } else {
         const metaName = `${publicKey}.json`;
@@ -88,13 +88,13 @@ async function saveMeta(publicKey, privateKey, meta) {
     }
 }
 
-async function getMeta(privateKey) {
+async function getMeta(publicKey) {
     if (dbConfig.dbType === "redis") {
-        const key = dbConfig.redisMetaPrefix + privateKey;
+        const key = dbConfig.redisMetaPrefix + publicKey;
         const metaInfo = await redisClient.get(key);
         return metaInfo ? JSON.parse(metaInfo) : {};
     } else {
-        const metaName = `${privateKey}.json`;
+        const metaName = `${publicKey}.json`;
         if (storageDriver === "local") {
             const filePath = path.join(dbConfig.dbFolder, metaName);
             if (!fs.existsSync(filePath)) return null;

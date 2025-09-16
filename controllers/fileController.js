@@ -87,10 +87,12 @@ exports.downloadFile = async (req, res) => {
     try {
         const {publicKey} = req.params;
         const meta = await getMeta(publicKey);
-        if (!meta) return res.status(404).json({error: "File not found"});
+        if (!meta || !meta.hasOwnProperty('fileName')) {
+            return res.status(404).json({error: "File not found"});
+        }
 
         meta.lastDownloadedAt = new Date().toISOString();
-        await saveMeta(publicKey, meta);
+        await saveMeta(publicKey, meta.privateKey, meta);
 
         const stream = await getFileStream(meta.fileName);
         const mimeType = mime.lookup(meta.originalName) || "application/octet-stream";
