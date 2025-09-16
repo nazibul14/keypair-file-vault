@@ -29,6 +29,7 @@ Thumbs.db
 docker-data/
 
 # Upload Folder
-uploads/
-database/
+storage/uploads/
+storage/database/
+storage/logs/
 

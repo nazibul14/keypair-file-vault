@@ -1,8 +1,8 @@
 const path = require("path");
 require("dotenv").config();
 
-const tmpUploadDir = path.join(__dirname, "../uploads");
-const uploadDir = process.env.FOLDER || path.join(__dirname, "../uploads");
+const tmpUploadDir = path.join(__dirname, "../storage/uploads");
+const uploadDir = process.env.FOLDER || path.join(__dirname, "../storage/uploads");
 
 module.exports = {
     tmpUploadDir: path.resolve(tmpUploadDir), //1st uploaded folder before encrypt

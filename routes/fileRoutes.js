@@ -7,6 +7,9 @@ const { checkUploadLimit, trackDownloadLimit } = require("../middlewares/traffic
 // POST /files - use the storageService middleware
 router.post("/", checkUploadLimit, storageService.singleFileUpload, fileController.uploadFile);
 
+// GET /files/clean
+// router.get("/clean", fileController.cleanInactiveFiles);
+
 // GET /files/:publicKey
 router.get("/:publicKey", trackDownloadLimit, fileController.downloadFile);
 

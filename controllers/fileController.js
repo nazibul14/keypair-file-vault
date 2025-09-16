@@ -19,6 +19,7 @@ const {
     deleteMeta,
     findMeta,
 } = require("../services/storageService");
+// const {cleanupOldFiles} = require("../services/cleanupService");
 
 // POST /files
 exports.uploadFile = async (req, res) => {
@@ -119,3 +120,10 @@ exports.deleteFile = async (req, res) => {
     await deleteMeta(meta.publicKeyId, privateKey);
     return res.json({ message: "File deleted successfully" });
 };
+
+// GET /files/clean
+/*
+exports.cleanInactiveFiles = async (req, res) => {
+    await cleanupOldFiles();
+    return res.json({ message: "Files cleaned" });
+};*/

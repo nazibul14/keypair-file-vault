@@ -42,7 +42,6 @@ app.use(function(err, req, res, next) {
 
 const { cleanupOldFiles } = require("./services/cleanupService");
 const { cleanupRunMillis } = require("./config/storage");
-
 // run once at startup
 cleanupOldFiles();
 // run every 24 hours

@@ -130,7 +130,7 @@ async function findMeta(privateKey) {
     if (dbConfig.dbType === "redis") {
         const keyMap = dbConfig.privateKeyMapPrefix + privateKey;
         const keyInfo = await redisClient.get(keyMap);
-        const key = keyInfo ?  dbConfig.redisMetaPrefix + keyInfo : '';
+        const key = keyInfo ? dbConfig.redisMetaPrefix + keyInfo : '';
         const metaInfo = await redisClient.get(key);
         return metaInfo ? JSON.parse(metaInfo) : {};
     } else {
@@ -150,11 +150,77 @@ async function findMeta(privateKey) {
     }
 }
 
+async function getInactiveFiles(inActiveDays) {
+    const allMeta = [];
+    if (dbConfig.dbType === "redis") {
+        const pattern = dbConfig.redisMetaPrefix + "*";
+        const now = Date.now();
+        const maxAgeMs = inActiveDays * 24 * 60 * 60 * 1000;
+
+        let cursor = '0';
+        // console.log("pattern", pattern);
+        do {
+            const {cursor: newCursor, keys} = await redisClient.scan(cursor, {
+                MATCH: pattern,
+                COUNT: 100
+            });
+            cursor = newCursor;
+            // console.log("keys", keys);
+
+            if (keys.length) {
+                // fetch all values in a batch
+                const values = await redisClient.mGet(keys);
+
+                values.forEach((v, i) => {
+                    if (!v) return;
+                    const meta = JSON.parse(v);
+                    // console.log("meta i", i, keys[i]);
+                    const lastDownloadedAt = meta.lastDownloadedAt || meta.uploadedAt;
+                    if (lastDownloadedAt) {
+                        const inactivityMs = now - new Date(lastDownloadedAt).getTime();
+                        // console.log("inactivityMs,maxAgeMs", inactivityMs, maxAgeMs);
+                        if (inactivityMs >= maxAgeMs) {
+                            // console.log(meta.fileName)
+                            allMeta.push(meta);
+                        }
+                    }
+                });
+            }
+        } while (cursor !== '0');
+
+    } else {
+        if (storageDriver === "local") {
+            const metaFiles = fs.readdirSync(dbConfig.dbFolder).filter(f => f.endsWith(".json"));
+            for (const mf of metaFiles) {
+                const metaPath = path.join(dbConfig.dbFolder, mf);
+                const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+                if (getInactiveDays(meta) >= inActiveDays) {
+                    allMeta.push(meta);
+                }
+            }
+        }
+    }
+
+    return allMeta;
+}
+
+function getInactiveDays(meta) {
+    const lastDownloadedAt = meta.lastDownloadedAt || meta.uploadedAt;
+    const now = Date.now();
+    if (lastDownloadedAt) {
+        const inactivityMs = now - new Date(lastDownloadedAt).getTime();
+        return inactivityMs / (1000 * 60 * 60 * 24);
+    }
+
+    return 0;
+}
+
 module.exports = {
     getTrafficRecord,
     saveTrafficRecord,
     saveMeta,
     getMeta,
     deleteMeta,
-    findMeta
+    findMeta,
+    getInactiveFiles
 };

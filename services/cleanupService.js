@@ -2,38 +2,19 @@ const fs = require("fs");
 const path = require("path");
 
 const { cleanupInactivityDays } = require("../config/storage");
-const { uploadDir } = require("./storageService"); // your upload dir
+const { deleteFile, deleteMeta } = require("./storageService");
+const { getInactiveFiles } = require("./dbService");
 
-function cleanupOldFiles() {
-    const metaFiles = fs.readdirSync(uploadDir).filter(f => f.endsWith(".json"));
-    const now = Date.now();
+async function cleanupOldFiles() {
 
-    for (const metaFile of metaFiles) {
-        const metaPath = path.join(uploadDir, metaFile);
-        let meta;
-        try {
-            meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
-        } catch (err) {
-            console.error("Could not parse meta file", metaFile, err);
-            continue;
-        }
+    const cleanFileInfo = await getInactiveFiles(cleanupInactivityDays);
 
-        // If no download time, fall back to upload time (or skip)
-        const lastDownloadedAt = meta.lastDownloadedAt || meta.uploadedAt;
-        if (!lastDownloadedAt) continue;
+    cleanFileInfo.forEach((meta, i) => {
+        if (!meta) return;
+        deleteFile(meta.fileName);
+        deleteMeta(meta.publicKeyId, meta.privateKey);
+    });
 
-        const inactivityMs = now - new Date(lastDownloadedAt).getTime();
-        const inactivityInDays = inactivityMs / (1000 * 60 * 60 * 24);
-
-        if (inactivityInDays >= cleanupInactivityDays) {
-            console.log(`Deleting inactive file ${meta.fileName}`);
-
-            const filePath = path.join(uploadDir, meta.fileName);
-            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-            if (fs.existsSync(metaPath)) fs.unlinkSync(metaPath);
-        }
-    }
 }
 
 module.exports = { cleanupOldFiles };

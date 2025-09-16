@@ -1,7 +1,7 @@
 const path = require("path");
 require("dotenv").config();
 
-const dbFolder = process.env.FILE_DB_FOLDER || path.join(__dirname, "../database");
+const dbFolder = process.env.FILE_DB_FOLDER || path.join(__dirname, "../storage/database");
 
 module.exports = {
     dbType: process.env.DB_TYPE || "file",
