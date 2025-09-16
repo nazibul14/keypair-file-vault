@@ -44,4 +44,12 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+const { cleanupOldFiles } = require("./services/cleanupService");
+const { cleanupRunMillis } = require("./config/storage");
+
+// run once at startup
+cleanupOldFiles();
+// run every 24 hours
+setInterval(cleanupOldFiles, cleanupRunMillis);
+
 module.exports = app;

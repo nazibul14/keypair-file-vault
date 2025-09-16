@@ -22,7 +22,7 @@ const {
 
 // POST /files
 exports.uploadFile = async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    if (!req.file) return res.status(400).json({error: "No file uploaded"});
 
     const fileBuffer = req.file.buffer || fs.readFileSync(req.file.path);
     const privateKey = crypto.randomBytes(16).toString("hex");
@@ -30,8 +30,8 @@ exports.uploadFile = async (req, res) => {
     let meta, publicKeyId, fileName;
 
     if (encryptionEnable) {
-        const { publicKeyPem, privateKeyPem } = generateKeyPair();
-        const { key: aesKey, iv } = generateAesKey();
+        const {publicKeyPem, privateKeyPem} = generateKeyPair();
+        const {key: aesKey, iv} = generateAesKey();
         const encryptedFileBuffer = aesEncrypt(fileBuffer, aesKey, iv);
         const aesBundle = Buffer.concat([aesKey, iv]);
         const encryptedAesBundle = rsaEncrypt(aesBundle, publicKeyPem);
@@ -46,6 +46,8 @@ exports.uploadFile = async (req, res) => {
             fileName,
             originalName: req.file.originalname,
             privateKey,
+            uploadedAt: new Date().toISOString(),
+            lastDownloadedAt: new Date().toISOString(),
         };
 
         await saveFile(fileName, encryptedFileBuffer);
@@ -55,7 +57,14 @@ exports.uploadFile = async (req, res) => {
 
         publicKeyId = crypto.randomBytes(8).toString("hex");
         fileName = `${publicKeyId}_${req.file.originalname}`;
-        meta = { publicKeyId, fileName, originalName: req.file.originalname, privateKey };
+        meta = {
+            publicKeyId,
+            fileName,
+            originalName: req.file.originalname,
+            privateKey,
+            uploadedAt: new Date().toISOString(),
+            lastDownloadedAt: new Date().toISOString(),
+        };
 
         await saveFile(fileName, fileBuffer);
         await saveMeta(publicKeyId, meta);
@@ -63,14 +72,17 @@ exports.uploadFile = async (req, res) => {
 
     fs.unlinkSync(req.file.path);
 
-    return res.json({ publicKey: publicKeyId, privateKey });
+    return res.json({publicKey: publicKeyId, privateKey});
 };
 
 // GET /files/:publicKey
 exports.downloadFile = async (req, res) => {
-    const { publicKey } = req.params;
+    const {publicKey} = req.params;
     const meta = await getMeta(publicKey);
-    if (!meta) return res.status(404).json({ error: "File not found" });
+    if (!meta) return res.status(404).json({error: "File not found"});
+
+    meta.lastDownloadedAt = new Date().toISOString();
+    await saveMeta(publicKey, meta);
 
     const stream = await getFileStream(meta.fileName);
     const mimeType = mime.lookup(meta.originalName) || "application/octet-stream";
@@ -97,13 +109,13 @@ exports.downloadFile = async (req, res) => {
 
 // DELETE /files/:privateKey
 exports.deleteFile = async (req, res) => {
-    const { privateKey } = req.params;
+    const {privateKey} = req.params;
 
     let meta = await findMeta(privateKey);
 
-    if (!meta) return res.status(404).json({ error: "File not found or invalid token" });
+    if (!meta) return res.status(404).json({error: "File not found or invalid token"});
 
     await storageDeleteFile(meta.fileName);
     await deleteMeta(meta.publicKeyId);
-    return res.json({ message: "File deleted successfully" });
+    return res.json({message: "File deleted successfully"});
 };

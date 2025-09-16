@@ -118,7 +118,7 @@ async function findMeta(privateKey) {
 module.exports = {
     singleFileUpload: upload.single("file"), // middleware for one file
     uploadDir, // export the folder path for other code to use
-    encryptionEnable, // export the folder path for other code to use
+    encryptionEnable,
     saveFile,
     getFileStream,
     deleteFile,
