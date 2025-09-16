@@ -2,6 +2,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const { tmpUploadDir, uploadDir, encryptionEnable, storageDriver } = require("../config/storage");
+const { saveMeta, getMeta, deleteMeta, findMeta } = require("../services/dbService");
 
 // Ensure tmp upload folder exists
 if (!fs.existsSync(tmpUploadDir)) {
@@ -72,6 +73,7 @@ async function deleteFile(fileName) {
     }*/
 }
 
+/*
 async function saveMeta(privateKey, meta) {
     const metaName = `${privateKey}.json`;
     const buffer = Buffer.from(JSON.stringify(meta));
@@ -85,13 +87,13 @@ async function getMeta(privateKey) {
         if (!fs.existsSync(filePath)) return null;
         return JSON.parse(fs.readFileSync(filePath));
     }
-/*    else if (storageDriver === "gcs") {
+/!*    else if (storageDriver === "gcs") {
         const { Storage } = require("@google-cloud/storage");
         const bucketName = process.env.GCS_BUCKET;
         const storage = new Storage();
         const [contents] = await storage.bucket(bucketName).file(metaName).download();
         return JSON.parse(contents.toString());
-    }*/
+    }*!/
 }
 
 async function deleteMeta(privateKey) {
@@ -113,6 +115,7 @@ async function findMeta(privateKey) {
 
     return meta
 }
+*/
 
 // Export an interface
 module.exports = {

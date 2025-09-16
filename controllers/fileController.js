@@ -51,7 +51,7 @@ exports.uploadFile = async (req, res) => {
         };
 
         await saveFile(fileName, encryptedFileBuffer);
-        await saveMeta(publicKeyId, meta);
+        await saveMeta(publicKeyId, privateKey, meta);
 
     } else {
 
@@ -67,7 +67,7 @@ exports.uploadFile = async (req, res) => {
         };
 
         await saveFile(fileName, fileBuffer);
-        await saveMeta(publicKeyId, meta);
+        await saveMeta(publicKeyId, privateKey, meta);
     }
 
     fs.unlinkSync(req.file.path);
@@ -116,6 +116,6 @@ exports.deleteFile = async (req, res) => {
     if (!meta) return res.status(404).json({error: "File not found or invalid token"});
 
     await storageDeleteFile(meta.fileName);
-    await deleteMeta(meta.publicKeyId);
-    return res.json({message: "File deleted successfully"});
+    await deleteMeta(meta.publicKeyId, privateKey);
+    return res.json({ message: "File deleted successfully" });
 };

@@ -30,4 +30,5 @@ docker-data/
 
 # Upload Folder
 uploads/
+database/
 
