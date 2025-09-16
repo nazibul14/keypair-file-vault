@@ -1,11 +1,12 @@
-const fs = require("fs");
+const { cleanupInactivityDays, logDir, cleanupLogFile} = require("../config/storage");
+const { deleteFile, deleteMeta, writeLog } = require("./storageService");
+const { getInactiveFiles } = require("./dbService");
 const path = require("path");
 
-const { cleanupInactivityDays } = require("../config/storage");
-const { deleteFile, deleteMeta } = require("./storageService");
-const { getInactiveFiles } = require("./dbService");
-
 async function cleanupOldFiles() {
+
+    const logFile = path.join(logDir, cleanupLogFile);
+    writeLog(logFile, "cleanup old files");
 
     const cleanFileInfo = await getInactiveFiles(cleanupInactivityDays);
 
@@ -13,6 +14,7 @@ async function cleanupOldFiles() {
         if (!meta) return;
         deleteFile(meta.fileName);
         deleteMeta(meta.publicKeyId, meta.privateKey);
+        writeLog(logFile, "deleted file: " + meta.fileName + " - publicKey: " + meta.publicKeyId);
     });
 
 }

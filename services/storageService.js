@@ -1,14 +1,17 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const { tmpUploadDir, uploadDir, encryptionEnable, storageDriver } = require("../config/storage");
+const { logDir, tmpUploadDir, uploadDir, encryptionEnable, storageDriver } = require("../config/storage");
 const { saveMeta, getMeta, deleteMeta, findMeta } = require("../services/dbService");
 
+// Ensure tmp upload folder exists
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+}
 // Ensure tmp upload folder exists
 if (!fs.existsSync(tmpUploadDir)) {
     fs.mkdirSync(tmpUploadDir, { recursive: true });
 }
-
 // Ensure folder exists
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -73,49 +76,11 @@ async function deleteFile(fileName) {
     }*/
 }
 
-/*
-async function saveMeta(privateKey, meta) {
-    const metaName = `${privateKey}.json`;
-    const buffer = Buffer.from(JSON.stringify(meta));
-    return saveFile(metaName, buffer);
+async function writeLog(logFile, logStr) {
+    const timestamp = new Date().toISOString();
+    const logEntry = timestamp + " - " + logStr + "\n"
+    fs.appendFileSync(logFile, logEntry, "utf8");
 }
-
-async function getMeta(privateKey) {
-    const metaName = `${privateKey}.json`;
-    if (storageDriver === "local") {
-        const filePath = path.join(uploadDir, metaName);
-        if (!fs.existsSync(filePath)) return null;
-        return JSON.parse(fs.readFileSync(filePath));
-    }
-/!*    else if (storageDriver === "gcs") {
-        const { Storage } = require("@google-cloud/storage");
-        const bucketName = process.env.GCS_BUCKET;
-        const storage = new Storage();
-        const [contents] = await storage.bucket(bucketName).file(metaName).download();
-        return JSON.parse(contents.toString());
-    }*!/
-}
-
-async function deleteMeta(privateKey) {
-    const metaName = `${privateKey}.json`;
-    return deleteFile(metaName);
-}
-
-// search through meta files to find matching privateKey
-async function findMeta(privateKey) {
-    let meta;
-    const metaFiles = fs.readdirSync(uploadDir).filter(f => f.endsWith(".json"));
-    for (const mf of metaFiles) {
-        const m = JSON.parse(fs.readFileSync(require("path").join(uploadDir, mf)));
-        if (m.privateKey === privateKey) {
-            meta = m;
-            break;
-        }
-    }
-
-    return meta
-}
-*/
 
 // Export an interface
 module.exports = {
@@ -129,4 +94,5 @@ module.exports = {
     getMeta,
     deleteMeta,
     findMeta,
+    writeLog
 };
