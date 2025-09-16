@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const moment = require("moment");
 const dbConfig = require("../config/db");
-const {storageDriver, uploadDir} = require("../config/storage");
+const {storageDriver} = require("../config/storage");
 let redisClient = null;
 
 // If Redis selected, init once
