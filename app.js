@@ -45,6 +45,6 @@ const { cleanupRunMillis } = require("./config/storage");
 // run once at startup
 cleanupOldFiles();
 // run every 24 hours
-setInterval(cleanupOldFiles, cleanupRunMillis);
+const cleanupTimer = setInterval(cleanupOldFiles, cleanupRunMillis);
 
-module.exports = app;
+module.exports = {app, cleanupTimer};
