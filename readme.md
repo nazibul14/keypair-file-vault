@@ -41,3 +41,9 @@ npm install
     ```bash
    npm test
    ```
+   
+---
+
+## Process Flow
+
+![Process Flow](public/images/keypair-file-vault-flowchart.svg)
