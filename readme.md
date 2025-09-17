@@ -102,7 +102,7 @@ npm install
 - **Delete meta record**
 - **Return JSON:**
   ```json
-  { message: "File deleted successfully" } 
+  { "message": "File deleted successfully" } 
 
 
 ![Process Flow](public/images/keypair-file-vault-flowchart.svg)
