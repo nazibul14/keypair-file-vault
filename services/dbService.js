@@ -205,13 +205,19 @@ async function getInactiveFiles(inActiveDays) {
 }
 
 function getInactiveDays(meta) {
-    const lastDownloadedAt = meta.lastDownloadedAt || meta.uploadedAt;
-    const now = Date.now();
-    if (lastDownloadedAt) {
-        const inactivityMs = now - new Date(lastDownloadedAt).getTime();
-        return inactivityMs / (1000 * 60 * 60 * 24);
+    try {
+        if(meta.hasOwnProperty('lastDownloadedAt') && meta.hasOwnProperty('uploadedAt')) {
+            const lastDownloadedAt = meta.lastDownloadedAt || meta.uploadedAt;
+            const now = Date.now();
+            if (lastDownloadedAt) {
+                const inactivityMs = now - new Date(lastDownloadedAt).getTime();
+                return inactivityMs / (1000 * 60 * 60 * 24);
+            }
+            return 0;
+        }
+    } catch (e) {
+        console.error(e);
     }
-
     return 0;
 }
 
@@ -222,5 +228,6 @@ module.exports = {
     getMeta,
     deleteMeta,
     findMeta,
-    getInactiveFiles
+    getInactiveFiles,
+    getFilePath
 };
