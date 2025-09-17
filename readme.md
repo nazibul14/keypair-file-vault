@@ -49,9 +49,6 @@ npm install
 You can test the API using Postman. The Postman collection is in the `/docs` folder.
 Download and import the Postman collection:
 
-[Download Postman Collection](docs/KeypairFileVault.postman_collection_v2.1.json)
-
-
 ---
 
 ## Functional Steps
