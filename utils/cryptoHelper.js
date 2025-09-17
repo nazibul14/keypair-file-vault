@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 
-// Generate a new RSA key pair (PEM)
+/** Generate a new RSA key pair (PEM) */
 function generateKeyPair() {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
         modulusLength: 2048,
@@ -10,7 +10,7 @@ function generateKeyPair() {
     return { publicKeyPem: publicKey, privateKeyPem: privateKey };
 }
 
-// Generate random AES key + IV
+/** Generate random AES key + IV */
 function generateAesKey() {
     return {
         key: crypto.randomBytes(32), // 256-bit AES key
@@ -18,19 +18,19 @@ function generateAesKey() {
     };
 }
 
-// Encrypt buffer with AES key+iv
+/** Encrypt buffer with AES key+iv */
 function aesEncrypt(buffer, key, iv) {
     const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
     return Buffer.concat([cipher.update(buffer), cipher.final()]);
 }
 
-// Decrypt buffer with AES key+iv
+/** Decrypt buffer with AES key+iv */
 function aesDecrypt(buffer, key, iv) {
     const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
     return Buffer.concat([decipher.update(buffer), decipher.final()]);
 }
 
-// Encrypt small data (AES key+iv) with RSA public key
+/**  Encrypt small data (AES key+iv) with RSA public key */
 function rsaEncrypt(buffer, publicKeyPem) {
     return crypto.publicEncrypt(
         {
@@ -42,7 +42,7 @@ function rsaEncrypt(buffer, publicKeyPem) {
     );
 }
 
-// Decrypt small data with RSA private key
+/**  Decrypt small data with RSA private key */
 function rsaDecrypt(buffer, privateKeyPem) {
     return crypto.privateDecrypt(
         {
