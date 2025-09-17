@@ -1,6 +1,15 @@
 const { dailyUploadLimit, dailyDownloadLimit} = require("../config/api");
 const dbService = require("../services/dbService");
 
+/**
+ * Upload traffic check middleware
+ * If limit reached then send json error response
+ * update the new access count
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 async function checkUploadLimit(req, res, next) {
     const ip = req.ip;
     let record = await dbService.getTrafficRecord(ip);
@@ -19,6 +28,15 @@ async function checkUploadLimit(req, res, next) {
     next();
 }
 
+/**
+ * Download traffic check middleware
+ * If limit reached then send json error response
+ * update the new download access count in meta
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 async function trackDownloadLimit(req, res, next) {
     const ip = req.ip;
     let record = await dbService.getTrafficRecord(ip);

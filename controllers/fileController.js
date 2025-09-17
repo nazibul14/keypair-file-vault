@@ -171,7 +171,7 @@ exports.deleteFile = async (req, res) => {
         await storageDeleteFile(meta.fileName);
         /** delete from meta */
         await deleteMeta(meta.publicKeyId, privateKey);
-        
+
         return res.json({code: 200, message: "File deleted successfully"});
 
     } catch (e) {

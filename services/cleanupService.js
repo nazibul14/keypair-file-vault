@@ -3,6 +3,12 @@ const {deleteFile, deleteMeta, writeLog} = require("./storageService");
 const {getInactiveFiles} = require("./dbService");
 const path = require("path");
 
+/**
+ * Cleanup function that find inactive files
+ * delete inactive files
+ * delete files meta
+ * @returns {Promise<void>}
+ */
 async function cleanupOldFiles() {
     const logFile = path.join(logDir, cleanupLogFile);
     try {

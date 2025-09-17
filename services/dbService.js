@@ -5,8 +5,8 @@ const dbConfig = require("../config/db");
 const {storageDriver} = require("../config/storage");
 let redisClient = null;
 
-// If Redis selected, init once
 if (dbConfig.dbType === "redis") {
+    /** If Redis selected, init once */
     const redis = require("redis");
     redisClient = redis.createClient({
         socket: {
@@ -19,12 +19,19 @@ if (dbConfig.dbType === "redis") {
     redisClient.connect().catch(console.error);
 
 } else if (dbConfig.dbType === "file") {
-    // Ensure folder exists
+
+    /** If Redis selected, init once */
     if (!fs.existsSync(dbConfig.dbFolder)) {
         fs.mkdirSync(dbConfig.dbFolder, {recursive: true});
     }
 }
 
+/**
+ * Get file path for writing upload/download information
+ * date wise folder will generate
+ * @param ip
+ * @returns {string}
+ */
 function getFilePath(ip) {
     const today = moment().format("YYYY-MM-DD");
     const dir = path.join(dbConfig.dbFolder, today);
@@ -33,6 +40,11 @@ function getFilePath(ip) {
     return path.join(dir, `${sanitizedIp}.json`);
 }
 
+/**
+ * Get the upload/download information for given ip
+ * @param ip
+ * @returns {Promise<any|{download: number, upload: number}>}
+ */
 async function getTrafficRecord(ip) {
     if (dbConfig.dbType === "redis") {
         const today = moment().format("YYYY-MM-DD");
@@ -52,6 +64,12 @@ async function getTrafficRecord(ip) {
     }
 }
 
+/**
+ * Save the upload/download information for given ip
+ * @param ip
+ * @param record
+ * @returns {Promise<void>}
+ */
 async function saveTrafficRecord(ip, record) {
     if (dbConfig.dbType === "redis") {
         const today = moment().format("YYYY-MM-DD");
@@ -68,6 +86,14 @@ async function saveTrafficRecord(ip, record) {
     }
 }
 
+/**
+ * Save file meta information to storage
+ * Save a map for private key to find public key
+ * @param publicKey public key string
+ * @param privateKey private key string
+ * @param meta file information meta
+ * @returns {Promise<void>}
+ */
 async function saveMeta(publicKey, privateKey, meta) {
     if (dbConfig.dbType === "redis") {
         const key = dbConfig.redisMetaPrefix + publicKey;
@@ -88,6 +114,11 @@ async function saveMeta(publicKey, privateKey, meta) {
     }
 }
 
+/**
+ * get file meta information for given publicKey
+ * @param publicKey
+ * @returns {Promise<null|any>}
+ */
 async function getMeta(publicKey) {
     if (dbConfig.dbType === "redis") {
         const key = dbConfig.redisMetaPrefix + publicKey;
@@ -100,16 +131,15 @@ async function getMeta(publicKey) {
             if (!fs.existsSync(filePath)) return null;
             return JSON.parse(fs.readFileSync(filePath));
         }
-        /*    else if (storageDriver === "gcs") {
-                const { Storage } = require("@google-cloud/storage");
-                const bucketName = process.env.GCS_BUCKET;
-                const storage = new Storage();
-                const [contents] = await storage.bucket(bucketName).file(metaName).download();
-                return JSON.parse(contents.toString());
-            }*/
     }
 }
 
+/**
+ * delete meta information from storage
+ * @param publicKey
+ * @param privateKey
+ * @returns {Promise<void>}
+ */
 async function deleteMeta(publicKey, privateKey) {
     if (dbConfig.dbType === "redis") {
         const key = dbConfig.redisMetaPrefix + publicKey;
@@ -126,6 +156,13 @@ async function deleteMeta(publicKey, privateKey) {
     }
 }
 
+/**
+ * find the meta information for given private key
+ * in Redis there has a record for private key
+ * in file the info is saved in a json format
+ * @param privateKey
+ * @returns {Promise<any>}
+ */
 async function findMeta(privateKey) {
     if (dbConfig.dbType === "redis") {
         const keyMap = dbConfig.privateKeyMapPrefix + privateKey;
@@ -150,6 +187,12 @@ async function findMeta(privateKey) {
     }
 }
 
+/**
+ * Get the inactive files, where file is not access with configured time
+ * in redis scan all meta info
+ * @param inActiveDays days for inactivity check
+ * @returns {Promise<*[]>} array of inactive meta information
+ */
 async function getInactiveFiles(inActiveDays) {
     const allMeta = [];
     if (dbConfig.dbType === "redis") {
@@ -168,14 +211,16 @@ async function getInactiveFiles(inActiveDays) {
             // console.log("keys", keys);
 
             if (keys.length) {
-                // fetch all values in a batch
+                /** fetch all values in a batch */
                 const values = await redisClient.mGet(keys);
 
                 values.forEach((v, i) => {
                     if (!v) return;
                     const meta = JSON.parse(v);
                     // console.log("meta i", i, keys[i]);
+                    /** get either last download time otherwise upload time */
                     const lastDownloadedAt = meta.lastDownloadedAt || meta.uploadedAt;
+                    /** Calculate inactive status*/
                     if (lastDownloadedAt) {
                         const inactivityMs = now - new Date(lastDownloadedAt).getTime();
                         // console.log("inactivityMs,maxAgeMs", inactivityMs, maxAgeMs);
@@ -190,6 +235,7 @@ async function getInactiveFiles(inActiveDays) {
 
     } else {
         if (storageDriver === "local") {
+            /** scan all meta files that end with .json */
             const metaFiles = fs.readdirSync(dbConfig.dbFolder).filter(f => f.endsWith(".json"));
             for (const mf of metaFiles) {
                 const metaPath = path.join(dbConfig.dbFolder, mf);
@@ -204,6 +250,11 @@ async function getInactiveFiles(inActiveDays) {
     return allMeta;
 }
 
+/**
+ * Calculation logic for inactive days
+ * @param meta file meta information
+ * @returns {number} inactive days
+ */
 function getInactiveDays(meta) {
     try {
         if(meta.hasOwnProperty('lastDownloadedAt') && meta.hasOwnProperty('uploadedAt')) {
