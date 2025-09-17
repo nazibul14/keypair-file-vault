@@ -24,7 +24,9 @@ app.set('port', port);
  */
 
 let server = null;
-
+/**
+ * Id cert key and private key exist the start the server with https
+ */
 if (crtpath != '' && privatekeypath != '' && fs.existsSync(crtpath) && fs.existsSync(privatekeypath)) {
   try {
     let options = {cert: fs.readFileSync(crtpath), key: fs.readFileSync(privatekeypath)};

@@ -39,7 +39,10 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
+/**
+ * Inactive file cleanup services
+ * this function periodically run after CLEANUP_RUN_INTERVAL_MIN in env
+ */
 const { cleanupOldFiles } = require("./services/cleanupService");
 const { cleanupRunMillis } = require("./config/storage");
 // run once at startup
